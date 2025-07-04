@@ -1,0 +1,16 @@
+{
+    "openai_api_key": "add your key",
+    "notes_folder": "path to notes folder",
+    "portfolio_csv": "path to portfolio in csv format",
+    "investment_strategy_txt": "path to investment strategy in txt format",
+    "recipient_email": "your-email@gmail.com",
+    "email": {
+        "from": "your-email-smtp-server@gmail.com",
+        "password": "pass",
+        "smtp_server": "smtp.gmail.com",
+        "smtp_port": 587
+    },
+    "personal_info":"I'm 99 years old, Software developer working at home",
+    "family_info": "Two daughters, three sons and blah-blah....",
+    "health_info": "..."
+}
