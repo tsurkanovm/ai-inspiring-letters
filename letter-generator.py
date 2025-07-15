@@ -86,20 +86,18 @@ class LetterGenerator:
         return response.choices[0].message.content.strip()
 
     def generate_investing_letter(self, note_excerpt, config):
-        portfolio = pd.read_csv(os.path.expanduser(config["portfolio_csv"]))
+        #does not use for now - provide the same suggestions about portfolio
+        #portfolio = pd.read_csv(os.path.expanduser(config["portfolio_csv"]))
         with open(os.path.expanduser(config["investment_strategy_txt"])) as file:
             strategy = file.read()
         prompt = f"""
-        You are a wise financial advisor. Using the provided excerpts, write an thoughtful, personalized letter
-        Investment Strategy:
+        You are a wise financial advisor. Using the provided excerpts, write an thoughtful, personalized letter. Check my investment strategy below:
         "{strategy}"
-        Portfolio:
-        "{portfolio.to_string(index=False)}"
+
         Letter:
         1. Greeting: 'Dear Mykhailo,'.
-        2. How the portfolio aligns with the strategy.
-        3. Recommendations for adjustment to portfolio and strategy.
-        4. Inspirational investor quotes.
+        2. Insightful inspirational thoughts.
+        3. Inspirational investor quotes.
         Excerpts:
         "{note_excerpt}"
         """
@@ -107,7 +105,7 @@ class LetterGenerator:
             model="gpt-4o",
             messages=[{"role": "user", "content": prompt}],
             max_tokens=700,
-            temperature=0.8
+            temperature=0.9
         )
         return response.choices[0].message.content.strip()
 
@@ -129,7 +127,7 @@ class LetterGenerator:
             model="gpt-4o",
             messages=[{"role": "user", "content": prompt}],
             max_tokens=700,
-            temperature=0.8
+            temperature=0.9
         )
         return response.choices[0].message.content.strip()
 
@@ -142,7 +140,7 @@ class LetterGenerator:
         Letter:
         1. Warm greeting: 'Dear Mykhailo,'.
         2. Insightful inspirational thoughts.
-        3. Practical habit suggestions.
+        3. Suggest one simple, measurable habit (as described in the book 'Atomic Habits' by James Clear).
         4. Recommendation of a book or movie.
         Excerpts:
         "{note_excerpt}"
@@ -184,6 +182,8 @@ class LetterGenerator:
             tool_choice="auto",
             temperature=0.0
         )
+
+        #print(response.model_dump())
 
         tool_call = response.choices[0].message.tool_calls[0]
         tool_name = tool_call.function.name
