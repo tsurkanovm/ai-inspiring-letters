@@ -12,5 +12,6 @@
     },
     "personal_info":"I'm 99 years old, Software developer working at home",
     "family_info": "Two daughters, three sons and blah-blah....",
-    "health_info": "..."
+    "health_info": "...",
+    "postgres_dsn": "postgresql://username:password@localhost:5432/your_db"
 }
