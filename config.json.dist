@@ -1,6 +1,7 @@
 {
     "openai_api_key": "add your key",
     "notes_folder": "path to notes folder",
+    "converted_notes_folder": "path to converted notes folder",
     "portfolio_csv": "path to portfolio in csv format",
     "investment_strategy_txt": "path to investment strategy in txt format",
     "recipient_email": "your-email@gmail.com",
