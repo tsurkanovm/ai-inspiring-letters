@@ -7,6 +7,8 @@ import pandas as pd
 import smtplib
 from email.mime.text import MIMEText
 from openai import OpenAI
+import psycopg
+from psycopg.rows import dict_row
 
 class LetterGenerator:
     LETTER_GENERATION_TOOLS = [
@@ -45,22 +47,35 @@ class LetterGenerator:
     def _create_openai_client(self):
         return OpenAI(api_key=self.config["openai_api_key"])
 
-    def pick_random_note(self, notes_folder):
-        notes = [f for f in os.listdir(notes_folder) if f.endswith('.docx')]
-        if not notes:
-            raise Exception("No notes available!")
-        return random.choice(notes)
+    def get_random_unsent_record(self):
+        """Get a random record from database that hasn't been sent as letter yet"""
+        with psycopg.connect(self.config["postgres_dsn"], row_factory=dict_row) as conn:
+            with conn.cursor() as cur:
+                # Get a random record where sent_as_letter is False
+                cur.execute("""
+                    SELECT id, book_name, chunk_text, headings 
+                    FROM book_chunks 
+                    WHERE sent_as_letter = FALSE 
+                    ORDER BY RANDOM() 
+                    LIMIT 1
+                """)
+                record = cur.fetchone()
+                
+                if not record:
+                    raise Exception("No unsent records available!")
+                
+                return record
 
-    def get_note_content(self, filepath, char_limit=4000):
-        doc = docx.Document(filepath)
-        full_text = "\n".join([p.text for p in doc.paragraphs if p.text.strip() != ""])
-        return full_text[:char_limit]
-
-    def extract_book_name(self, filename):
-        base = os.path.splitext(filename)[0]
-        base = re.sub(r'\[.*?\]', '', base)
-        base = base.replace('_', ' ').strip()
-        return base
+    def mark_as_sent(self, record_id):
+        """Mark a record as sent by setting sent_as_letter to True"""
+        with psycopg.connect(self.config["postgres_dsn"], row_factory=dict_row) as conn:
+            with conn.cursor() as cur:
+                cur.execute("""
+                    UPDATE book_chunks 
+                    SET sent_as_letter = TRUE 
+                    WHERE id = %s
+                """, (record_id,))
+                conn.commit()
 
     def generate_parenting_letter(self, note_excerpt, config):
         family = config["family_info"]
@@ -164,12 +179,14 @@ class LetterGenerator:
             server.sendmail(msg['From'], [recipient_email], msg.as_string())
 
     def generate_and_send_letter(self):
-        notes_folder = self.config["notes_folder"]
         recipient_email = self.config["recipient_email"]
 
-        selected_note = self.pick_random_note(notes_folder)
-        note_content = self.get_note_content(os.path.join(notes_folder, selected_note))
-        email_subject = self.extract_book_name(selected_note)
+        # Get a random unsent record from database
+        record = self.get_random_unsent_record()
+        
+        note_content = record['chunk_text']
+        email_subject = record['book_name']
+        record_id = record['id']
 
         response = self.openai_client.chat.completions.create(
             model="gpt-4o",
@@ -191,6 +208,10 @@ class LetterGenerator:
 
         letter = self.letter_generators[tool_name](args["note_excerpt"], self.config)
         self.send_email(letter, email_subject, recipient_email)
+        
+        # Mark the record as sent
+        self.mark_as_sent(record_id)
+        print(f"Letter sent successfully and record {record_id} marked as sent.")
 
 
 if __name__ == "__main__":
