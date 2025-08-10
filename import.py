@@ -17,11 +17,6 @@ with open('config.json') as f:
 client = OpenAI(api_key=config["openai_api_key"])
 
 tokenizer = OpenAITokenizerWrapper()  # Load our custom tokenizer for OpenAI
-MAX_TOKENS = 8191  # text-embedding-3-large's maximum context length - do not using now cause it leads to big arbitrary chunks
-
-# --------------------------------------------------------------
-# Extract the data
-# --------------------------------------------------------------
 
 def embed_text(text: str) -> list[float]:
     resp = client.embeddings.create(
