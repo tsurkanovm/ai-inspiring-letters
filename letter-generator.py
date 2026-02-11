@@ -9,41 +9,6 @@ import psycopg
 from psycopg.rows import dict_row
 from openai import OpenAI
 
-
-def html_to_plain(html: str) -> str:
-    """
-    Very small HTML->plain fallback for email clients that don't render HTML well.
-    Keeps it dependency-free (no external libs).
-    """
-    if not html:
-        return ""
-
-    # Convert common block breaks to newlines
-    text = html
-    text = re.sub(r"(?i)<\s*br\s*/?\s*>", "\n", text)
-    text = re.sub(r"(?i)</\s*p\s*>", "\n\n", text)
-    text = re.sub(r"(?i)</\s*li\s*>", "\n", text)
-    text = re.sub(r"(?i)<\s*li\s*>", "• ", text)
-    text = re.sub(r"(?i)</\s*blockquote\s*>", "\n", text)
-
-    # Strip all remaining tags
-    text = re.sub(r"<[^>]+>", "", text)
-
-    # Unescape a few common entities
-    text = (
-        text.replace("&nbsp;", " ")
-        .replace("&amp;", "&")
-        .replace("&lt;", "<")
-        .replace("&gt;", ">")
-        .replace("&quot;", '"')
-        .replace("&#39;", "'")
-    )
-
-    # Normalize whitespace
-    text = re.sub(r"\n{3,}", "\n\n", text)
-    return text.strip()
-
-
 class LetterGenerator:
     LETTER_GENERATION_TOOLS = [
         {
@@ -258,9 +223,10 @@ Original excerpt:
         msg["From"] = from_email
         msg["To"] = recipient_email
 
-        plain_body = html_to_plain(html_body)
+        #plain_body = html_to_plain(html_body)
+        #plain_body = html_body  # experiment without the formatting function
 
-        part_plain = MIMEText(plain_body, "plain", "utf-8")
+        part_plain = MIMEText(html_body, "plain", "utf-8")
         part_html = MIMEText(html_body, "html", "utf-8")
 
         msg.attach(part_plain)

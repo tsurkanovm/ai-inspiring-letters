@@ -1,4 +1,6 @@
-- fixed book name in import cause it has special characters and service suffixes
 - adapt send letter script for the case when all records were sent
 - check the converting to chunks error log (few chunks were skipped)
 - cron job not working properly 
+- add recommendation table - and structured response to save recommendation book or movie into the table
+- add separate table with avtor column for the book table
+- - remove first request to gpt - define the coach type during the import
